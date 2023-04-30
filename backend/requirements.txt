@@ -1,0 +1,16 @@
+django==4.1.*
+django-cors-headers==3.*
+django-filter==2.*
+django-prometheus==2.*
+djangorestframework==3.*
+djangorestframework-csv==2.*
+drf-spectacular==0.*
+djangorestframework-api-key==2.*
+gunicorn==20.*
+loguru==0.*
+psycopg2-binary==2.*
+supervisor==4.*
+tzdata==2022.*
+whitenoise==6.*
+django-mptt==0.*
+pyyaml==6.*

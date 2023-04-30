@@ -1,0 +1,48 @@
+version: '3.9'
+services:
+  budgetmate:
+    container_name: BudgetMate
+    networks:
+      - BudgetMate
+    env_file:
+      - ./backend/.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-BudgetMate.settings.development}
+      - DJANGO_CREATESU_OPTIONS=
+      - DJANGO_SUPERUSER_EMAIL=netclaire@hotmail.fr
+      - GUNICORN_WORKERS=2
+      - POSTGRES_APP_DB=django_app # same as in postgres container
+    restart: always
+    build:
+      context: ./
+      dockerfile: ./build/Dockerfile
+      target: dev
+      args:
+        APP_SUBPATH: "/BudgetMate/"
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/BudgetMate:/home/bmate/BudgetMate
+
+  postgres:
+    image: "postgres:14.2"
+    networks:
+      - BudgetMate
+    container_name: BudgetMate_postgres
+    env_file:
+      - ./backend/.env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin}
+      - POSTGRES_APP_DB=django_app # same as in app container
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./build/postgres/900-create_db.sh:/docker-entrypoint-initdb.d/900-create_db.sh
+
+networks:
+  BudgetMate:
+    driver: bridge

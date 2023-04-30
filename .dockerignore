@@ -1,0 +1,10 @@
+build/
+backend/postgres/
+backend/data/
+frontend/node_modules/
+frontend/dist/
+data/
+Dockerfile
+.dockerignore
+.idea/
+.vscode/

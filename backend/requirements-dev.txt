@@ -1,0 +1,16 @@
+pre-commit
+isort
+docformatter==1.5.1
+black
+flake8
+mypy
+coverage
+django-filter-stubs
+django-stubs
+djangorestframework-stubs
+types-requests
+factory_boy
+ipython
+django-extensions
+pygraphviz
+django-debug-toolbar==3.*

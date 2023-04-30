@@ -1,0 +1,15 @@
+@font-face {
+  font-family: Poppins;
+  src: url("/app/uc7/static/fonts/Poppins-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Poppins;
+  font-weight: bold;
+  src: url("/app/uc7/static/fonts/Poppins-SemiBold.ttf") format("truetype");
+}
+
+body {
+  font-family: Poppins, var(--bs-body-font-family);
+  background-color: #f3f3f3;
+}

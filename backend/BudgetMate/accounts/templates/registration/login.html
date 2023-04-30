@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}BudgetMate - Login{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" type="text/css" href="{% static 'styles/login.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <main class="form-login w-100 m-auto">
+    {% comment %} <img class="form-login-logo" src="{% static 'images/logo.png' %}" alt="logo" /> {% endcomment %}
+    <form method="post" action="{% url 'core:login' %}">
+      {% csrf_token %}
+      <h1 class="h3 mb-3 fw-normal">Please log in</h1>
+
+      {% if form.errors %}
+        <p class="text-danger">Your username and password didn't match. Please try again.</p>
+      {% endif %}
+
+      <div class="form-floating">
+        <input name="username" class="form-control" placeholder="username">
+        <label for="username">Username</label>
+      </div>
+      <div class="form-floating">
+        <input name="password" type="password" class="form-control" placeholder="Password">
+        <label for="password">Password</label>
+      </div>
+
+      <input type="hidden" name="next" value="{{ next }}">
+
+      <button class="w-100 btn btn-lg btn-primary" type="submit">Log in</button>
+    </form>
+  </main>
+{% endblock %}
