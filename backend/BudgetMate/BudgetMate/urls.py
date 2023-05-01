@@ -20,7 +20,11 @@ from rest_framework import routers
 
 import accounts.views as accounts_views
 
+# Local
+from .urls_api import router as api_router
+
 router = routers.DefaultRouter()
+router.registry.extend(api_router.registry)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
