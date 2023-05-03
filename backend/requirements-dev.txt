@@ -12,5 +12,4 @@ types-requests
 factory_boy
 ipython
 django-extensions
-pygraphviz
 django-debug-toolbar==3.*
