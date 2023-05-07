@@ -6,7 +6,10 @@ from accounts.models import User
 
 class BankBrand(models.Model):
     name = models.CharField(max_length=255)
+
     # TO DO : logo ImageField ?
+    def __str__(self):
+        return self.name
 
 
 class BankAccount(models.Model):
@@ -19,6 +22,10 @@ class BankAccount(models.Model):
         User,
         on_delete=models.CASCADE,
     )
+    description = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.account_number} ({self.bank.name})"
 
 
 class StatementType(models.TextChoices):
@@ -42,7 +49,10 @@ class AccountStatement(models.Model):
     )
 
     def __str__(self):
-        f"Relevé de compte couvrant du {self.start_date} au {self.end_date}."
+        return (
+            f"{self.statement_type} couvrant du {self.start_date} au {self.end_date} "
+            f": {self.bank_account.user.username} chez {self.bank_account.bank.name}."
+        )
 
 
 class OperationType(models.TextChoices):
@@ -61,7 +71,7 @@ class StatementLine(models.Model):
         on_delete=models.CASCADE,
     )
     operation_type = models.CharField(max_length=255, choices=OperationType.choices)
-    amount = models.IntegerField()
+    amount = models.DecimalField(max_digits=100, decimal_places=2)
     operation_date = models.DateField()
     libeller = models.CharField(max_length=200)
     category = models.ForeignKey(
@@ -77,6 +87,12 @@ class Category(models.Model):
     name = models.CharField(max_length=200)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Categories"
+
 
 class SubCategory(models.Model):
     name = models.CharField(max_length=200)
@@ -85,3 +101,9 @@ class SubCategory(models.Model):
         on_delete=models.CASCADE,
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Subcategories"
