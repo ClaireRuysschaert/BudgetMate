@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api } from 'ui/services/ApiService';
+import axios from 'axios';
 
 const App = () => {
 
@@ -7,10 +7,9 @@ const App = () => {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    api.get('/dummy/').then((res) => {
-      console.log(res)
-      setMessage(res.message)
-    })
+    axios.get('/api/dummy/').then((response) => {
+      setMessage(response.data.message);
+    });
   }
 
   return (
