@@ -1,0 +1,72 @@
+[
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 1,
+        "fields": {
+            "name":"Shopping"
+        }
+    },
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 2,
+        "fields": {
+            "name":"Alimentation et Hygiène"
+        }
+    },
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 3,
+        "fields": {
+            "name":"Divertissement"
+        }
+    },
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 4,
+        "fields": {
+            "name":"Santé"
+        }
+    },
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 5,
+        "fields": {
+            "name":"Transport"
+        }
+    },
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 6,
+        "fields": {
+            "name":"Logement"
+        }
+    },
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 7,
+        "fields": {
+            "name":"Culture"
+        }
+    },
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 8,
+        "fields": {
+            "name":"Dons associatifs"
+        }
+    },
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 9,
+        "fields": {
+            "name":"Impôts, Taxes"
+        }
+    },
+    {
+        "model":"data_ingestion.Category", 
+        "pk": 10,
+        "fields": {
+            "name":"Autre ..."
+        }
+    }
+]

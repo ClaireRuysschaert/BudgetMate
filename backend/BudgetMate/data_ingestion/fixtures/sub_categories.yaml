@@ -1,0 +1,225 @@
+- "model": "data_ingestion.SubCategory"
+  "pk": 1
+  "fields":
+    "name": "Vetements, chaussures, linge de maison"
+    "category": 1
+- "model": "data_ingestion.SubCategory"
+  "pk": 2
+  "fields":
+    "name": "Animaux domestiques"
+    "category": 1
+- "model": "data_ingestion.SubCategory"
+  "pk": 3
+  "fields":
+    "name": "Papetrie, Poste et Colis"
+    "category": 1
+- "model": "data_ingestion.SubCategory"
+  "pk": 4
+  "fields":
+    "name": "Cadeaux (Noel, Anniversaires)"
+    "category": 1
+- "model": "data_ingestion.SubCategory"
+  "pk": 5
+  "fields":
+    "name": "Coiffeurs et soins du corps"
+    "category": 1
+- "model": "data_ingestion.SubCategory"
+  "pk": 6
+  "fields":
+    "name": "Abonnements / Box"
+    "category": 1
+- "model": "data_ingestion.SubCategory"
+  "pk": 7
+  "fields":
+    "name": "Hyper/Supermarché"
+    "category": 2
+- "model": "data_ingestion.SubCategory"
+  "pk": 8
+  "fields":
+    "name": "Petits commeréants (Boulangerie, Marché, Poissonnerie, etc)"
+    "category": 2
+- "model": "data_ingestion.SubCategory"
+  "pk": 9
+  "fields":
+    "name": "Restaurant"
+    "category": 2
+- "model": "data_ingestion.SubCategory"
+  "pk": 10
+  "fields":
+    "name": "Restauration rapide"
+    "category": 2
+- "model": "data_ingestion.SubCategory"
+  "pk": 11
+  "fields":
+    "name": "Livraison Nourriture"
+    "category": 2
+- "model": "data_ingestion.SubCategory"
+  "pk": 12
+  "fields":
+    "name": "Bar"
+    "category": 2
+- "model": "data_ingestion.SubCategory"
+  "pk": 13
+  "fields":
+    "name": "Jeux vidéos"
+    "category": 3
+- "model": "data_ingestion.SubCategory"
+  "pk": 14
+  "fields":
+    "name": "Jeux de société"
+    "category": 3
+- "model": "data_ingestion.SubCategory"
+  "pk": 15
+  "fields":
+    "name": "Musique et services de streaming (Spotify)"
+    "category": 3
+- "model": "data_ingestion.SubCategory"
+  "pk": 16
+  "fields":
+    "name": "Services de streaming (Netflix, Disney+, etc)"
+    "category": 3
+- "model": "data_ingestion.SubCategory"
+  "pk": 17
+  "fields":
+    "name": "Sport, équipements et événements sportifs"
+    "category": 3
+- "model": "data_ingestion.SubCategory"
+  "pk": 18
+  "fields":
+    "name": "Activités (Escape game, Laser game, Piscine, Patinoire, etc)"
+    "category": 3
+- "model": "data_ingestion.SubCategory"
+  "pk": 19
+  "fields":
+    "name": "Vacances (Location logement, véhicule, repas, transporté)"
+    "category": 3
+- "model": "data_ingestion.SubCategory"
+  "pk": 20
+  "fields":
+    "name": "Loisir (Puzzle, couture, etc)"
+    "category": 3
+- "model": "data_ingestion.SubCategory"
+  "pk": 21
+  "fields":
+    "name": "Pharmacie"
+    "category": 4
+- "model": "data_ingestion.SubCategory"
+  "pk": 22
+  "fields":
+    "name": "Consultation médicale"
+    "category": 4
+- "model": "data_ingestion.SubCategory"
+  "pk": 23
+  "fields":
+    "name": "Mutuelle santé"
+    "category": 4
+- "model": "data_ingestion.SubCategory"
+  "pk": 24
+  "fields":
+    "name": "Vétérinaire"
+    "category": 4
+- "model": "data_ingestion.SubCategory"
+  "pk": 25
+  "fields":
+    "name": "Transports en commun"
+    "category": 5
+- "model": "data_ingestion.SubCategory"
+  "pk": 26
+  "fields":
+    "name": "Frais véhicule (réparation voiture, changement roue vélo/trottinette, prét voiture, etc)"
+    "category": 5
+- "model": "data_ingestion.SubCategory"
+  "pk": 27
+  "fields":
+    "name": "Carburant"
+    "category": 5
+- "model": "data_ingestion.SubCategory"
+  "pk": 28
+  "fields":
+    "name": "Assurance (voiture, trottinette, etc)"
+    "category": 5
+- "model": "data_ingestion.SubCategory"
+  "pk": 29
+  "fields":
+    "name": "Taxi, Uber"
+    "category": 5
+- "model": "data_ingestion.SubCategory"
+  "pk": 30
+  "fields":
+    "name": "Frais de parking"
+    "category": 5
+- "model": "data_ingestion.SubCategory"
+  "pk": 31
+  "fields":
+    "name": "Loyer"
+    "category": 6
+- "model": "data_ingestion.SubCategory"
+  "pk": 32
+  "fields":
+    "name": "Prét"
+    "category": 6
+- "model": "data_ingestion.SubCategory"
+  "pk": 33
+  "fields":
+    "name": "Factures (électricité, eau, gaz)"
+    "category": 6
+- "model": "data_ingestion.SubCategory"
+  "pk": 34
+  "fields":
+    "name": "Internet et téléphonie"
+    "category": 6
+- "model": "data_ingestion.SubCategory"
+  "pk": 35
+  "fields":
+    "name": "Interventions, Réparations et maintenance"
+    "category": 6
+- "model": "data_ingestion.SubCategory"
+  "pk": 36
+  "fields":
+    "name": "Assurance habitation"
+    "category": 6
+- "model": "data_ingestion.SubCategory"
+  "pk": 37
+  "fields":
+    "name": "Ameublement"
+    "category": 6
+- "model": "data_ingestion.SubCategory"
+  "pk": 38
+  "fields":
+    "name": "Appareil"
+    "category": 6
+- "model": "data_ingestion.SubCategory"
+  "pk": 39
+  "fields":
+    "name": "Décoration"
+    "category": 6
+- "model": "data_ingestion.SubCategory"
+  "pk": 40
+  "fields":
+    "name": "Exposition"
+    "category": 7
+- "model": "data_ingestion.SubCategory"
+  "pk": 41
+  "fields":
+    "name": "Musée"
+    "category": 7
+- "model": "data_ingestion.SubCategory"
+  "pk": 42
+  "fields":
+    "name": "Spectacle"
+    "category": 7
+- "model": "data_ingestion.SubCategory"
+  "pk": 43
+  "fields":
+    "name": "Lecture"
+    "category": 7
+- "model": "data_ingestion.SubCategory"
+  "pk": 44
+  "fields":
+    "name": "Cinéma"
+    "category": 7
+- "model": "data_ingestion.SubCategory"
+  "pk": 45
+  "fields":
+    "name": "Concerts"
+    "category": 7
