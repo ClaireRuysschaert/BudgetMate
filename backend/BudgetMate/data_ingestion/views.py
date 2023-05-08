@@ -1,13 +1,9 @@
-from rest_framework import viewsets
+from rest_framework import generics
 from rest_framework.response import Response
 
 
-class DummyViewSet(viewsets.ViewSet):
-    """
-    A dummy viewset to test the API
-    """
-    def list(self, request):
-        """
-        Returns a dummy response
-        """
-        return Response({'message': 'Hello World!'})
+class UploadFileView(generics.CreateAPIView):
+    def post(self, request, *args, **kwargs):
+        # Show content of csv file
+        print(request.data['file'].read().decode('utf-8'))
+        return Response({'message': 'POST: Received a file!'})

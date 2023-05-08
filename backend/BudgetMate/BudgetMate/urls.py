@@ -22,6 +22,7 @@ import accounts.views as accounts_views
 
 # Local
 from .urls_api import router as api_router
+from .urls_api import urlpatterns as api_urlpatterns
 
 router = routers.DefaultRouter()
 router.registry.extend(api_router.registry)
@@ -29,6 +30,7 @@ router.registry.extend(api_router.registry)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/", include(router.urls)),
+    path("api/v1/", include(api_urlpatterns)),
     re_path("", include("accounts.urls", namespace="core")),
     # Match all and forward to react router on the front-end app.
     re_path(r"^(?:.*)/?$", accounts_views.index),
