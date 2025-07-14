@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 import csv
 from datetime import datetime
-from data_ingestion.models import StatementLine, Category, SubCategory, AccountStatement, BankAccount, ShareRule
+from data_ingestion.models import StatementLine, Category, SubCategory, AccountStatement, BankAccount, ShareRule, LabelCategoryMapping
 from accounts.models import User
 from data_ingestion.utils import get_is_shared_for_user
 from data_ingestion.constants import OPERATION_TYPE_MAP
@@ -117,8 +117,44 @@ class CaisseDepargneParser(StatementParser):
                 start_token=r"PRLV",
             )
 
+import unicodedata
 
-def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_account_id, user_id) -> None:
+def clean_string(s: str) -> str:
+    return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
+
+def prompt_for_category(label: str, category_name: str, sub_category_name: str) -> tuple[str | None, str | None]:
+    print(f"\nNew label detected: {label}")
+    # Category input loop
+    while True:
+        cat_input = input(f"Proposed category: '{category_name}'. Type 'yes' to accept, or enter a new category (or 'q' to quit): ").strip()
+        if cat_input.lower() == "q":
+            print("Input cancelled.")
+            return None, None
+        if cat_input.lower() in ["yes", "", "y"]:
+            category = category_name
+        else:
+            category = cat_input if cat_input else category_name
+        if category:
+            break
+        print("Please enter a category or quit.")
+
+    # Sub-category input loop
+    while True:
+        subcat_input = input(f"Proposed sub-category: '{sub_category_name}'. Type 'yes' to accept, or enter a new sub-category (or 'q' to quit): ").strip()
+        if subcat_input.lower() == "q":
+            print("Input cancelled.")
+            return None, None
+        if subcat_input.lower() in ["yes", "", "y"]:
+            sub_category = sub_category_name
+        else:
+            sub_category = subcat_input if subcat_input else sub_category_name
+        if sub_category:
+            break
+        print("Please enter a sub-category or quit.")
+
+    return category.strip(), sub_category.strip()
+
+def parse_csv_and_create_statements(csv_name: str, date_from: datetime , date_to: datetime, statement_type: str, bank_account_id: int, user_id: int) -> None:
     user = User.objects.get(id=user_id)
     account_statement, created = AccountStatement.objects.get_or_create(
         start_date=date_from,
@@ -129,26 +165,38 @@ def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_acc
     if not created and account_statement.statementline_set.exists():
         print(f"Account statement for {date_from} to {date_to} already exists.")
         return
-    csv_path = Path(__file__).parent / "fixtures" / "june_ca.csv"
-    with open(csv_path, encoding="utf-8") as f:
+    csv_path = Path(__file__).parent / "fixtures" / csv_name
+    with open(csv_path, encoding="utf-8", errors="replace") as f:
         csv_reader = csv.reader(f, delimiter=';')
         header = next(csv_reader)
         for row in csv_reader:
             label = row[1]
             comment = row[2]
             operation_type_raw = row[5]
-            category_name = row[6]
-            sub_category_name = row[7]
+            category_name_csv = row[6]
+            sub_category_name_csv = row[7]
             debit_amount = row[8]
             credit_amount = row[9]
             operation_date = row[10]
 
             operation_type = OPERATION_TYPE_MAP.get(operation_type_raw, "OT")
-            
-            category = Category.objects.get_or_create(name=category_name, user=user)[0] if category_name else None
-            sub_category = None
-            if sub_category_name and category:
-                sub_category = SubCategory.objects.get_or_create(name=sub_category_name, category=category, user=user)[0]
+
+            mapping = LabelCategoryMapping.objects.filter(user=user, label=label).first()
+            if mapping:
+                category = mapping.category
+                sub_category = mapping.sub_category
+            else:
+                cat_name, subcat_name = prompt_for_category(label, category_name_csv, sub_category_name_csv)
+                if cat_name:
+                    cat_name = clean_string(cat_name)
+                if subcat_name:
+                    subcat_name = clean_string(subcat_name)
+                category = Category.objects.get_or_create(name=cat_name, user=user)[0] if cat_name else None
+                sub_category = None
+                if subcat_name and category:
+                    sub_category = SubCategory.objects.get_or_create(name=subcat_name, category=category, user=user)[0]
+                if category and sub_category:
+                    LabelCategoryMapping.objects.create(user=user, label=label, category=category, sub_category=sub_category)
             
             amount = None
             if debit_amount:
@@ -170,14 +218,14 @@ def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_acc
                 is_shared=is_shared
             )
 
-
 def ask_shared_decision(statement_line: StatementLine, user: User) -> None:
     print(f"\n Line : {statement_line.libeller} | {statement_line.amount} | {statement_line.operation_date} | Category: {statement_line.category} | Subcategory: {statement_line.sub_category}")
     print("Share this line ?")
     print("1 - Yes, but only for this statement")
     print("2 - Yes forever (create a share rule)")
-    print("3 - No")
-    choice = input("Your choice : (1/2/3) : ").strip()
+    print("3 - No, but only for this statement")
+    print("4 - No, Never (create a share rule)")
+    choice = input("Your choice : (1/2/3/4) : ").strip()
     if choice == "1":
         statement_line.is_shared = True
         statement_line.save()
@@ -193,12 +241,21 @@ def ask_shared_decision(statement_line: StatementLine, user: User) -> None:
     elif choice == "3":
         statement_line.is_shared = False
         statement_line.save()
+    elif choice == "4":
+        ShareRule.objects.get_or_create(
+            user=user,
+            label=statement_line.libeller,
+            sub_category=statement_line.sub_category,
+            defaults={"always_shared": False}
+        )
+        statement_line.is_shared = False
+        statement_line.save()
     else:
         print("Invalid choice, line ignored.")
 
-def cli_set_shared_for_unclassified(user_id):
+def cli_set_shared_for_unclassified(user_id: int, statement_type:str) -> None:
     user = User.objects.get(id=user_id)
-    account_statement = AccountStatement.objects.filter(bank_account__user__id=user_id, statement_type="CA").last()
+    account_statement = AccountStatement.objects.filter(bank_account__user__id=user_id, statement_type=statement_type).last()
     lines = StatementLine.objects.filter(is_shared__isnull=True, account_statement=account_statement)
     for line in lines:
         ask_shared_decision(line, user)
@@ -206,3 +263,38 @@ def cli_set_shared_for_unclassified(user_id):
     account_statement.total_shared_amount_by_category()
     print(account_statement.total_shared_amount())
 
+def import_and_set_shared_for_files(
+    csv_files: list[tuple[str, str]],
+    date_from: datetime,
+    date_to: datetime,
+    bank_account_id: int,
+    user_id: int
+) -> None:
+    """
+    Parse multiple CSV files and prompt the user to set sharing rules for unclassified lines.
+    Prints total shared amounts for each account statement and by category.
+    csv_file :  [("file1.csv", "type1"), ("file2.csv", "type2")]
+    """
+    imported_statements = []
+    for csv_name, statement_type in csv_files:
+        print(f"\n--- Importing {csv_name} ---")
+        parse_csv_and_create_statements(
+            csv_name, date_from, date_to, statement_type, bank_account_id, user_id
+        )
+        account_statement = AccountStatement.objects.filter(
+            bank_account__user__id=user_id, statement_type=statement_type
+        ).last()
+        imported_statements.append(account_statement)
+        print(f"Parsing done for {csv_name}.")
+
+    print("\n--- Setting shared status for all imported statements ---")
+    for account_statement in imported_statements:
+        lines = StatementLine.objects.filter(is_shared__isnull=True, account_statement=account_statement)
+        user = account_statement.bank_account.user
+        for line in lines:
+            ask_shared_decision(line, user)
+        print(f"\nTotals for statement from {account_statement.start_date} to {account_statement.end_date}:")
+        print("Total shared amount by category:")
+        print(account_statement.total_shared_amount_by_category())
+        print("Total shared amount:")
+        print(account_statement.total_shared_amount())
