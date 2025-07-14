@@ -62,6 +62,29 @@ class AccountStatement(models.Model):
 
     def total_amount(self):
         return self.statementline_set.aggregate(total=models.Sum('amount'))['total'] or 0
+    
+    def total_shared_amount(self):
+        return self.statementline_set.filter(is_shared=True).aggregate(total=models.Sum('amount'))['total'] or 0
+
+    def total_shared_amount_by_category(self):
+        """
+        Returns a dictionary {(category_name, sub_category_name, libeller): total_amount} for this account statement.
+        """
+        from django.db.models import Sum
+        results = (
+            self.statementline_set
+            .filter(is_shared=True)
+            .values('category__name', 'sub_category__name')
+            .annotate(total=Sum('amount'))
+            .order_by('category__name', 'sub_category__name')
+        )
+        total_shared_amount_by_category = {
+            (r['category__name'], r['sub_category__name']): r['total']
+            for r in results if r['category__name']
+        }
+        for key, value in total_shared_amount_by_category.items():
+            value_str = str(value).replace('.', ',')
+            print(f"{key[0]}; {key[1]}; {value_str}")
 
 
 class OperationType(models.TextChoices):
@@ -96,13 +119,16 @@ class StatementLine(models.Model):
     category = models.ForeignKey(
         "Category", on_delete=models.SET_NULL, blank=True, null=True
     )
+    sub_category = models.ForeignKey(
+        "SubCategory", on_delete=models.SET_NULL, blank=True, null=True
+    )
     comment = models.CharField(max_length=250, blank=True, null=True)
-    is_shared = models.BooleanField(default=False)  # For cost sharing
+    is_shared = models.BooleanField(default=False, null=True, blank=True)  # For cost sharing
     
     def __str__(self):
         return (
-            f"{self.libeller} - {self.operation_type} - {self.amount} "
-            f"on {self.operation_date} for {self.account_statement.bank_account.user.username}"
+            f"{self.libeller} - {self.operation_type} - {self.amount} - IS SHARED: {self.is_shared} "
+            f" on {self.operation_date} for {self.account_statement.bank_account.user.username}"
         )
 
 
@@ -139,3 +165,15 @@ class SubCategory(models.Model):
     class Meta:
         verbose_name_plural = "Subcategories"
 
+
+class ShareRule(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    label = models.CharField(max_length=200)
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE)
+    always_shared = models.BooleanField(default=True, null=True, blank=True)
+
+    class Meta:
+        unique_together = ("user", "label", "sub_category")
+
+    def __str__(self):
+        return f"{self.user.username} - {self.label} - {self.sub_category.name} - {'Always Shared' if self.always_shared else 'Not Always Shared'}"
