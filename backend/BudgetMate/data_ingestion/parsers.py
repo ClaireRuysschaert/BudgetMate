@@ -8,9 +8,10 @@ from datetime import datetime
 from pathlib import Path
 import csv
 from datetime import datetime
-from data_ingestion.models import StatementLine, Category, SubCategory, AccountStatement, BankAccount
+from data_ingestion.models import StatementLine, Category, SubCategory, AccountStatement, BankAccount, ShareRule
 from accounts.models import User
-
+from data_ingestion.utils import get_is_shared_for_user
+import sys
 
 """
 Different banks will have different ways of formatting data.
@@ -142,7 +143,7 @@ bank_account_id = 1
     # - the bank account id that correspond to the account statement
     # - statement_type that correspond to the account statement
 
-def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_account_id, user_id):
+def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_account_id, user_id) -> None:
     user = User.objects.get(id=user_id)
     account_statement = AccountStatement.objects.get_or_create(
         start_date=date_from,
@@ -150,12 +151,12 @@ def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_acc
         statement_type=statement_type,
         bank_account=BankAccount.objects.get(id=bank_account_id, user=user)
         )[0]
-    csv_path = Path(__file__).parent / "fixtures" / "june.csv"
+    csv_path = Path(__file__).parent / "fixtures" / "june_ca.csv"
     with open(csv_path, encoding="utf-8") as f:
         csv_reader = csv.reader(f, delimiter=';')
         header = next(csv_reader)
         for row in csv_reader:
-            label = row[2]
+            label = row[1]
             operation_type = row[5]
             category_name = row[6]
             sub_category_name = row[7]
@@ -165,16 +166,19 @@ def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_acc
 
             category = Category.objects.get_or_create(name=category_name, user=user)[0] if category_name else None
             sub_category = None
+            print(f"Category: {category}, Sub-category: {sub_category_name}")
             if sub_category_name and category:
                 sub_category = SubCategory.objects.get_or_create(name=sub_category_name, category=category, user=user)[0]
-
+            print(f"Sub-category: {sub_category}, {sub_category.id}")
             amount = None
             if debit_amount:
                 amount = Decimal(float(debit_amount.replace(',', '.')))
             elif credit_amount:
                 amount = Decimal(float(credit_amount.replace(',', '.')))
 
-            StatementLine.objects.create(
+            is_shared = get_is_shared_for_user(user, label, sub_category) if sub_category else None
+            
+            StatementLine.objects.get_or_create(
                 account_statement=account_statement,
                 libeller=label,
                 operation_type=operation_type,
@@ -182,5 +186,42 @@ def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_acc
                 sub_category=sub_category,
                 amount=amount,
                 operation_date=datetime.strptime(operation_date, "%d/%m/%Y").date() if operation_date else None,
+                is_shared=is_shared
             )
+
+
+def ask_shared_decision(statement_line: StatementLine, user: User) -> None:
+    print(f"\n Line : {statement_line.libeller} | {statement_line.amount} | {statement_line.operation_date} | Category: {statement_line.category} | Subcategory: {statement_line.sub_category}")
+    print("Share this line ?")
+    print("1 - Yes, but only for this statement")
+    print("2 - Yes forever (create a share rule)")
+    print("3 - No")
+    choice = input("Your choice : (1/2/3) : ").strip()
+    if choice == "1":
+        statement_line.is_shared = True
+        statement_line.save()
+    elif choice == "2":
+        ShareRule.objects.get_or_create(
+            user=user,
+            label=statement_line.libeller,
+            sub_category=statement_line.sub_category,
+            defaults={"always_shared": True}
+        )
+        statement_line.is_shared = True
+        statement_line.save()
+    elif choice == "3":
+        statement_line.is_shared = False
+        statement_line.save()
+    else:
+        print("Invalid choice, line ignored.")
+
+def cli_set_shared_for_unclassified(user_id):
+    user = User.objects.get(id=user_id)
+    account_statement = AccountStatement.objects.filter(bank_account__user__id=user_id, statement_type="CA").last()
+    lines = StatementLine.objects.filter(is_shared__isnull=True, account_statement=account_statement)
+    for line in lines:
+        ask_shared_decision(line, user)
+    print("Done! All unclassified lines have been processed.")
+    account_statement.total_shared_amount_by_category()
+    print(account_statement.total_shared_amount())
 
