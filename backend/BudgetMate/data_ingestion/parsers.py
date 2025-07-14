@@ -11,7 +11,7 @@ from datetime import datetime
 from data_ingestion.models import StatementLine, Category, SubCategory, AccountStatement, BankAccount, ShareRule
 from accounts.models import User
 from data_ingestion.utils import get_is_shared_for_user
-import sys
+from data_ingestion.constants import OPERATION_TYPE_MAP
 
 """
 Different banks will have different ways of formatting data.
@@ -116,60 +116,40 @@ class CaisseDepargneParser(StatementParser):
             LabelPattern(
                 start_token=r"PRLV",
             )
-            
 
-# Goal : load a csv file and parse it :
-# each line corresponnd to a StatementLine objects
-    # - the first line is the header
-    # - the second line is the first line of data
-        # - the first column is the comptabilisation date to pass
-        # - the third column is the label corresponding to libeller to the StatementLine object
-        # - the fourth column is the reference to pass
-        # - the fifth column is the more informations to pass
-        # - the sixth column is the operation type corresponding to operation_type to the StatementLine object
-        # - the seventh column is the category corresponding to category to the StatementLine object
-        # - the eighth column is the sub-category corresponding to sub_category to the StatementLine object
-        # - the ninth column is the debit amount corresponding to amount to the StatementLine object
-        # - the tenth column is the credit amount corresponding to amount to the StatementLine object
-        # - the eleventh column is the date corresponding to operation_date to the StatementLine object
-        # - the twelfth column is the value date to pass
-        # - the thirteenth column is the pointage to pass
-
-
-user_id = 1
-bank_account_id = 1
-# To parse the CSV file, the user has to provide : 
-    # - the date from / date to that correspond to the account statement
-    # - the bank account id that correspond to the account statement
-    # - statement_type that correspond to the account statement
 
 def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_account_id, user_id) -> None:
     user = User.objects.get(id=user_id)
-    account_statement = AccountStatement.objects.get_or_create(
+    account_statement, created = AccountStatement.objects.get_or_create(
         start_date=date_from,
         end_date=date_to,
         statement_type=statement_type,
         bank_account=BankAccount.objects.get(id=bank_account_id, user=user)
-        )[0]
+        )
+    if not created and account_statement.statementline_set.exists():
+        print(f"Account statement for {date_from} to {date_to} already exists.")
+        return
     csv_path = Path(__file__).parent / "fixtures" / "june_ca.csv"
     with open(csv_path, encoding="utf-8") as f:
         csv_reader = csv.reader(f, delimiter=';')
         header = next(csv_reader)
         for row in csv_reader:
             label = row[1]
-            operation_type = row[5]
+            comment = row[2]
+            operation_type_raw = row[5]
             category_name = row[6]
             sub_category_name = row[7]
             debit_amount = row[8]
             credit_amount = row[9]
             operation_date = row[10]
 
+            operation_type = OPERATION_TYPE_MAP.get(operation_type_raw, "OT")
+            
             category = Category.objects.get_or_create(name=category_name, user=user)[0] if category_name else None
             sub_category = None
-            print(f"Category: {category}, Sub-category: {sub_category_name}")
             if sub_category_name and category:
                 sub_category = SubCategory.objects.get_or_create(name=sub_category_name, category=category, user=user)[0]
-            print(f"Sub-category: {sub_category}, {sub_category.id}")
+            
             amount = None
             if debit_amount:
                 amount = Decimal(float(debit_amount.replace(',', '.')))
@@ -181,6 +161,7 @@ def parse_csv_and_create_statements(date_from, date_to, statement_type, bank_acc
             StatementLine.objects.get_or_create(
                 account_statement=account_statement,
                 libeller=label,
+                comment=comment,
                 operation_type=operation_type,
                 category=category,
                 sub_category=sub_category,

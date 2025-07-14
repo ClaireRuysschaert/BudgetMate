@@ -98,7 +98,9 @@ class OperationType(models.TextChoices):
     REFUND = "RE", "Refund"
     INT = "IN", "Interest"
     TRANSFER = "TR", "Transfer"
+    BANK_FEES = "BF", "Bank Fees"
     OTHER = "OT", "Other"
+    
 
 
 class StatementLine(models.Model):
