@@ -83,7 +83,8 @@ class AccountStatement(models.Model):
             for r in results if r['category__name']
         }
         for key, value in total_shared_amount_by_category.items():
-            value_str = str(value).replace('.', ',')
+            abs_value = abs(value)
+            value_str = str(abs_value).replace('.', ',')
             print(f"{key[0]}; {key[1]}; {value_str}")
 
 
@@ -179,3 +180,16 @@ class ShareRule(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.label} - {self.sub_category.name} - {'Always Shared' if self.always_shared else 'Not Always Shared'}"
+
+
+class LabelCategoryMapping(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    label = models.CharField(max_length=200)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    sub_category = models.ForeignKey(SubCategory, on_delete=models.CASCADE, blank=True, null=True)
+
+    class Meta:
+        unique_together = ("user", "label")
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.label} - {self.category.name} - {self.sub_category.name if self.sub_category else 'No Subcategory'}"
