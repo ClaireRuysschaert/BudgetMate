@@ -1,10 +1,13 @@
 from django.contrib import admin
+
 from .models import (
-    BankBrand,
-    BankAccount,
     AccountStatement,
-    StatementLine,
+    BankAccount,
+    BankBrand,
     Category,
+    LabelCategoryMapping,
+    ShareRule,
+    StatementLine,
     SubCategory,
 )
 
@@ -60,6 +63,7 @@ class StatementLineAdmin(admin.ModelAdmin):
 
     search_fields = ["account_statement__bank_account__user__username"]
 
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     pass
@@ -69,3 +73,22 @@ class CategoryAdmin(admin.ModelAdmin):
 class SubCategoryAdmin(admin.ModelAdmin):
     pass
 
+
+@admin.register(LabelCategoryMapping)
+class LabelCategoryMappingAdmin(admin.ModelAdmin):
+    list_display = ("user", "label", "category", "sub_category")
+
+    def user(self, obj: LabelCategoryMapping):
+        return obj.user.username
+
+    search_fields = ["user__username", "label"]
+
+
+@admin.register(ShareRule)
+class ShareRuleAdmin(admin.ModelAdmin):
+    list_display = ("user", "label", "sub_category", "always_shared")
+
+    def user(self, obj: ShareRule):
+        return obj.user.username
+
+    search_fields = ["user__username", "label", "sub_category__name"]
