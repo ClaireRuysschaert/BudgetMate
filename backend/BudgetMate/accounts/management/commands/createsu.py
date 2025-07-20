@@ -1,12 +1,11 @@
 # Built-in
 import os
+from logging import getLogger
 from typing import Any
 
 # Django
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandParser
-
-from logging import getLogger
 
 logger = getLogger("django")
 
@@ -39,12 +38,8 @@ class Command(BaseCommand):
                 if admin_pwd is not None and len(admin_pwd) >= 20:
                     user.set_password(admin_pwd)
                     user.save()
-                    logger.info(
-                        "Super user already exist. Reset password as per instruction."
-                    )
+                    logger.info("Super user already exist. Reset password as per instruction.")
                 else:
-                    logger.warning(
-                        "Super user password not reset as not provided or does not match requirements."
-                    )
+                    logger.warning("Super user password not reset as not provided or does not match requirements.")
             else:
                 logger.info("Super user already exist. Did not create it.")

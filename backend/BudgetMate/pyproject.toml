@@ -1,0 +1,22 @@
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 120  # More reasonable line length
+exclude = [
+    "migrations",  # Exclude Django migrations
+    "__pycache__",
+    ".git",
+    ".venv",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]  # E=pycodestyle errors, F=pyflakes, I=import sorting
+ignore = [
+    "E501",  # Line too long (we'll handle this with formatter)
+]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+line-ending = "auto"
