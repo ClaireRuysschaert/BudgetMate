@@ -56,9 +56,7 @@ class ProfileViewSet(viewsets.ViewSet):
         else:
             partial = False
 
-        serializer = ProfileSerializer(
-            profile, data=request.data, partial=partial
-        )
+        serializer = ProfileSerializer(profile, data=request.data, partial=partial)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
 

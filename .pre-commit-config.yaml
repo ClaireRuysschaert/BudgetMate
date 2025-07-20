@@ -1,0 +1,19 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.4
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix, --show-fixes]
+        exclude: ^.*migrations/.*$ # Exclude Django migrations
+      - id: ruff-format
+        exclude: ^.*migrations/.*$ # Exclude Django migrations
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.10.1
+    hooks:
+      - id: isort
+        exclude: ^.*migrations/.*$ # Exclude Django migrations
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.14.1
+    hooks:
+      - id: mypy
+        exclude: ^.*migrations/.*$ # Exclude Django migrations

@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -106,9 +107,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-POSTGRES_HOST = os.getenv(
-    "POSTGRES_SERVICE_HOST", os.getenv("POSTGRES_HOST", "postgres")
-)
+POSTGRES_HOST = os.getenv("POSTGRES_SERVICE_HOST", os.getenv("POSTGRES_HOST", "postgres"))
 POSTGRES_PORT = os.getenv("POSTGRES_SERVICE_PORT", os.getenv("POSTGRES_PORT", 5432))
 POSTGRES_USER = os.getenv("POSTGRES_APP_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_APP_PASSWORD")

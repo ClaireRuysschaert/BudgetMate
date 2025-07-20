@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("data_ingestion", "0006_statementline_is_shared_and_more"),
     ]

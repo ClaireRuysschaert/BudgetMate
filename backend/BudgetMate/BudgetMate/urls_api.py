@@ -7,5 +7,5 @@ router = routers.DefaultRouter()
 
 urlpatterns = [
     # Data Ingestion
-    path('upload/', UploadFileView.as_view(), name='upload'),
+    path("upload/", UploadFileView.as_view(), name="upload"),
 ]

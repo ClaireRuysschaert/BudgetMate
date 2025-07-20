@@ -17,8 +17,6 @@ else:
 
 
 @receiver(post_save, sender=User)
-def create_profile(
-    sender: Type[User], instance: User, created: bool, **kwargs: Dict
-) -> None:
+def create_profile(sender: Type[User], instance: User, created: bool, **kwargs: Dict) -> None:
     if created:
         Profile.objects.create(user=instance)
