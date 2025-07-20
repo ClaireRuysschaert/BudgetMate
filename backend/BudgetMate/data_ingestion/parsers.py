@@ -12,16 +12,8 @@ from data_ingestion.constants import (
     REGEX_PURCHASE,
     REGEX_TRANSFER,
 )
-from data_ingestion.models import (
-    AccountStatement,
-    BankAccount,
-    ShareRule,
-    StatementLine,
-)
-from data_ingestion.utils import (
-    get_is_shared_for_user,
-    map_label_to_category_and_subcategory,
-)
+from data_ingestion.models import AccountStatement, BankAccount, StatementLine
+from data_ingestion.utils import get_is_shared_for_user
 
 
 def parse_csv_and_create_statements(
@@ -32,6 +24,8 @@ def parse_csv_and_create_statements(
     bank_account_id: int,
     user_id: int,
 ) -> None:
+    from data_ingestion.views import map_label_to_category_and_subcategory
+
     user = User.objects.get(id=user_id)
     account_statement, created = AccountStatement.objects.get_or_create(
         start_date=date_from,
@@ -136,89 +130,3 @@ def parse_csv_and_create_statements(
                     operation_date=operation_date,
                     is_shared=is_shared,
                 )
-
-
-def ask_shared_decision(statement_line: StatementLine, user: User) -> None:
-    print(
-        f"\n Line : {statement_line.libeller} | {statement_line.amount} | {statement_line.operation_date} | Category: {statement_line.category} | Subcategory: {statement_line.sub_category}"
-    )
-    print("Share this line ?")
-    print("1 - Yes, but only for this statement")
-    print("2 - Yes forever (create a share rule)")
-    print("3 - No, but only for this statement")
-    print("4 - No, Never (create a share rule)")
-    choice = input("Your choice : (1/2/3/4) : ").strip()
-    if choice == "1":
-        statement_line.is_shared = True
-        statement_line.save()
-    elif choice == "2":
-        ShareRule.objects.get_or_create(
-            user=user,
-            label=statement_line.libeller,
-            sub_category=statement_line.sub_category,
-            defaults={"always_shared": True},
-        )
-        statement_line.is_shared = True
-        statement_line.save()
-    elif choice == "3":
-        statement_line.is_shared = False
-        statement_line.save()
-    elif choice == "4":
-        ShareRule.objects.get_or_create(
-            user=user,
-            label=statement_line.libeller,
-            sub_category=statement_line.sub_category,
-            defaults={"always_shared": False},
-        )
-        statement_line.is_shared = False
-        statement_line.save()
-    else:
-        print("Invalid choice, line ignored.")
-
-
-def cli_set_shared_for_unclassified(user_id: int, statement_type: str) -> None:
-    user = User.objects.get(id=user_id)
-    account_statement = AccountStatement.objects.filter(
-        bank_account__user__id=user_id, statement_type=statement_type
-    ).last()
-    lines = StatementLine.objects.filter(is_shared__isnull=True, account_statement=account_statement)
-    for line in lines:
-        ask_shared_decision(line, user)
-    print("Done! All unclassified lines have been processed.")
-    account_statement.total_shared_amount_by_category()
-    print(account_statement.total_shared_amount())
-
-
-def import_and_set_shared_for_files(
-    csv_files: list[tuple[str, str]],
-    date_from: datetime,
-    date_to: datetime,
-    bank_account_id: int,
-    user_id: int,
-) -> None:
-    """
-    Parse multiple CSV files and prompt the user to set sharing rules for unclassified lines.
-    Prints total shared amounts for each account statement and by category.
-    csv_file :  [("file1.csv", "type1"), ("file2.csv", "type2")]
-    """
-    imported_statements = []
-    for csv_name, statement_type in csv_files:
-        print(f"\n--- Importing {csv_name} ---")
-        parse_csv_and_create_statements(csv_name, date_from, date_to, statement_type, bank_account_id, user_id)
-        account_statement = AccountStatement.objects.filter(
-            bank_account__user__id=user_id, statement_type=statement_type
-        ).last()
-        imported_statements.append(account_statement)
-        print(f"Parsing done for {csv_name}.")
-
-    print("\n--- Setting shared status for all imported statements ---")
-    for account_statement in imported_statements:
-        lines = StatementLine.objects.filter(is_shared__isnull=True, account_statement=account_statement)
-        user = account_statement.bank_account.user
-        for line in lines:
-            ask_shared_decision(line, user)
-        print(f"\nTotals for statement from {account_statement.start_date} to {account_statement.end_date}:")
-        print("Total shared amount by category:")
-        print(account_statement.total_shared_amount_by_category())
-        print("Total shared amount:")
-        print(account_statement.total_shared_amount())
