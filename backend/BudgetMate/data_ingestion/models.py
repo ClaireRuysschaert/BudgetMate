@@ -65,10 +65,10 @@ class AccountStatement(models.Model):
     def total_amount(self):
         return self.statementline_set.aggregate(total=models.Sum("amount"))["total"] or 0
 
-    def total_shared_amount(self):
+    def total_shared_amount(self) -> float:
         return self.statementline_set.filter(is_shared=True).aggregate(total=models.Sum("amount"))["total"] or 0
 
-    def total_shared_amount_by_category(self):
+    def total_shared_amount_by_category(self) -> dict:
         """
         Returns a dictionary {(category_name, sub_category_name, libeller): total_amount} for this account statement.
         """
@@ -84,9 +84,10 @@ class AccountStatement(models.Model):
             (r["category__name"], r["sub_category__name"]): r["total"] for r in results if r["category__name"]
         }
         for key, value in total_shared_amount_by_category.items():
-            abs_value = abs(value)
-            value_str = str(abs_value).replace(".", ",")
+            flipped_value = -value  # Flip the sign to display positive values for expenses
+            value_str = str(flipped_value).replace(".", ",")
             print(f"{key[0]}; {key[1]}; {value_str}")
+        return total_shared_amount_by_category
 
 
 class OperationType(models.TextChoices):

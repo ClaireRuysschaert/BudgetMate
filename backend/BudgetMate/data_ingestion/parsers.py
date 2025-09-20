@@ -7,8 +7,11 @@ from pathlib import Path
 from accounts.models import User
 from data_ingestion.constants import (
     OPERATION_TYPE_MAP,
+    REGEX_BANK_FEE,
+    REGEX_CREDIT_CARD_REFUND,
     REGEX_DIRECT_DEBIT,
     REGEX_INSTANT_TRANSFER,
+    REGEX_OUTGOING_TRANSFER,
     REGEX_PURCHASE,
     REGEX_TRANSFER,
 )
@@ -55,23 +58,51 @@ def parse_csv_and_create_statements(
                 direct_debit_match = re.search(REGEX_DIRECT_DEBIT, row[1])
                 transfer_match = re.search(REGEX_TRANSFER, row[1])
                 instant_transfer_match = re.search(REGEX_INSTANT_TRANSFER, row[1])
+                outgoing_transfer_match = re.search(REGEX_OUTGOING_TRANSFER, row[1])
+                credit_card_refund_match = re.search(REGEX_CREDIT_CARD_REFUND, row[1])
+                bank_fee_match = re.search(REGEX_BANK_FEE, row[1])
 
                 # Extract purchase date if it's a card purchase
                 if purchase_match:
                     operation_date_raw = " ".join(purchase_match.group(3).split())
                     operation_date = datetime.strptime(operation_date_raw, "%d.%m.%y").date()
 
-                transaction_match = purchase_match or direct_debit_match or transfer_match or instant_transfer_match
-                expense_match = purchase_match or direct_debit_match
-                income_match = transfer_match or instant_transfer_match
+                transaction_match = (
+                    purchase_match
+                    or direct_debit_match
+                    or transfer_match
+                    or instant_transfer_match
+                    or outgoing_transfer_match
+                    or credit_card_refund_match
+                    or bank_fee_match
+                )
+                expense_match = purchase_match or direct_debit_match or bank_fee_match
+                income_match = transfer_match or instant_transfer_match or credit_card_refund_match
+                outgoing_match = outgoing_transfer_match
 
                 # Extract clean label from the matched pattern
                 if expense_match:
-                    clean_label = " ".join(expense_match.group(2).split())
+                    if bank_fee_match:
+                        clean_label = " ".join(bank_fee_match.group(1).split())
+                    else:
+                        clean_label = " ".join(expense_match.group(2).split())
                 elif income_match:
-                    clean_label = " ".join(income_match.group(1 if instant_transfer_match else 2).split())
-                    if "SALAIRE" in clean_label:
-                        continue  # Skip salary entries
+                    if credit_card_refund_match:
+                        clean_label = " ".join(credit_card_refund_match.group(2).split())
+                        # Extract the refund date
+                        operation_date_raw = " ".join(credit_card_refund_match.group(3).split())
+                        operation_date = datetime.strptime(operation_date_raw, "%d.%m.%y").date()
+                    else:
+                        clean_label = " ".join(income_match.group(1 if instant_transfer_match else 2).split())
+                        if "SALAIRE" in clean_label:
+                            continue  # Skip salary entries
+                elif outgoing_match:
+                    clean_label = " ".join(outgoing_match.group(2).split())
+                    if "EPARGNE" in clean_label:
+                        continue  # Skip savings transfers
+                else:
+                    clean_label = row[1].strip('"')
+                    print(f"Warning: Unmatched transaction pattern: {row[1]}")
 
                 amount = Decimal(row[2].replace(",", ".")) if row[2] else None
                 operation_type_raw = " ".join(transaction_match.group(1).split()) if transaction_match else "OT"

@@ -144,7 +144,7 @@ def ask_shared_decision(statement_line: StatementLine, user: User) -> None:
                 )
                 statement_line.sub_category = new_sub_category
                 statement_line.save()
-                print(f"New subcategory created and assigned: {new_subcat_clean_name}.")
+                print(f"New subcategory created and assigned: {new_subcat_clean_name}.\n")
             else:
                 print("No subcategory name provided, keeping current one.")
         elif choice == "3":
@@ -162,14 +162,14 @@ def ask_shared_decision(statement_line: StatementLine, user: User) -> None:
                     statement_line.sub_category = new_sub_category
                     statement_line.save()
 
-                    print(f"New category created: {new_cat_clean_name}")
-                    print(f"New subcategory created: {new_subcat_clean_name}")
+                    print(f"New category created: {new_cat_clean_name}\n")
+                    print(f"New subcategory created: {new_subcat_clean_name}\n")
             else:
                 print("No subcategory name provided, keeping current categorization.")
         elif choice != "1":
             print("Invalid choice, keeping current subcategory.")
 
-    print("Share this line ?")
+    print("\nShare this line ?")
     print("1 - Yes, but only for this statement")
     print("2 - Yes forever (create a share rule)")
     print("3 - No, but only for this statement")
@@ -201,6 +201,7 @@ def ask_shared_decision(statement_line: StatementLine, user: User) -> None:
         statement_line.save()
     else:
         print("Invalid choice, line ignored.")
+        # TODO : do a while loop until valid input
 
 
 def cli_set_shared_for_unclassified(user_id: int, statement_type: str) -> None:
@@ -249,3 +250,6 @@ def import_and_set_shared_for_files(
         print(account_statement.total_shared_amount_by_category())
         print("Total shared amount:")
         print(account_statement.total_shared_amount())
+        print("-----")
+        print("All lines have been processed.")
+        print("-----")
