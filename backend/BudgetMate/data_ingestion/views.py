@@ -61,12 +61,25 @@ def map_label_to_category_and_subcategory(
     if subcat_name:
         subcat_name = clean_string(subcat_name)
 
-    category = Category.objects.get_or_create(name=cat_name, user=user)[0]
+    # Look for existing category first, create if not found
+    try:
+        category = Category.objects.get(name=cat_name, user=user)
+        print(f"Found existing category: {cat_name}")
+    except Category.DoesNotExist:
+        category = Category.objects.create(name=cat_name, user=user)
+        print(f"Created new category: {cat_name}")
+
     sub_category = None
-
     if subcat_name and category:
-        sub_category = SubCategory.objects.get_or_create(name=subcat_name, category=category, user=user)[0]
+        # Look for existing subcategory first, create if not found
+        try:
+            sub_category = SubCategory.objects.get(name=subcat_name, category=category, user=user)
+            print(f"Found existing subcategory: {subcat_name}")
+        except SubCategory.DoesNotExist:
+            sub_category = SubCategory.objects.create(name=subcat_name, category=category, user=user)
+            print(f"Created new subcategory: {subcat_name}")
 
+    # Create the mapping for future use
     if category and sub_category:
         LabelCategoryMapping.objects.create(
             user=user,

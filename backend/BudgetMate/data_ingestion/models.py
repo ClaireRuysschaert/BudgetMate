@@ -147,6 +147,7 @@ class Category(models.Model):
 
     class Meta:
         verbose_name_plural = "Categories"
+        unique_together = ("name", "user")
 
 
 class SubCategory(models.Model):
